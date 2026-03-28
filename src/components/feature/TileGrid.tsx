@@ -1,95 +1,90 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, Vibration, Platform } from 'react-native';
-import { colors, typography, spacing, borderRadius, shadows } from '../../constants/theme';
+import { View, Pressable, Text, StyleSheet, Vibration } from 'react-native';
 import { shuffleArray } from '../../services/textProcessor';
+import { colors, typography, spacing, borderRadius, shadows } from '../../constants/theme';
 
-interface TileGridProps {
+type TileGridProps = {
   tiles: string[];
   correctTile: string;
   onCorrectPress: () => void;
   shuffleEnabled: boolean;
-}
+};
 
 export function TileGrid({ tiles, correctTile, onCorrectPress, shuffleEnabled }: TileGridProps) {
-  const [shuffledTiles, setShuffledTiles] = useState<string[]>([]);
+  const [displayTiles, setDisplayTiles] = useState<string[]>(tiles);
   const [errorTile, setErrorTile] = useState<string | null>(null);
 
   useEffect(() => {
-    setShuffledTiles(shuffleEnabled ? shuffleArray(tiles) : tiles);
-    setErrorTile(null);
+    if (shuffleEnabled) {
+      setDisplayTiles(shuffleArray(tiles));
+    } else {
+      setDisplayTiles([...tiles]);
+    }
   }, [tiles, correctTile, shuffleEnabled]);
 
-  const handlePress = (tile: string) => {
+  const handleTilePress = (tile: string) => {
     if (tile === correctTile) {
-      // Correct tile pressed
-      if (Platform.OS === 'ios' || Platform.OS === 'android') {
-        Vibration.vibrate(50);
-      }
+      // Correct tile - success feedback
+      Vibration.vibrate(10);
       onCorrectPress();
     } else {
-      // Wrong tile pressed
+      // Wrong tile - error feedback
       setErrorTile(tile);
-      if (Platform.OS === 'ios' || Platform.OS === 'android') {
-        Vibration.vibrate([0, 100, 50, 100]);
-      }
+      Vibration.vibrate([0, 50, 50, 50]);
       setTimeout(() => setErrorTile(null), 500);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.grid}>
-        {shuffledTiles.map((tile, index) => (
-          <Pressable
-            key={`${tile}-${index}`}
-            onPress={() => handlePress(tile)}
-            style={({ pressed }) => [
-              styles.tile,
-              pressed && styles.tilePressed,
-              errorTile === tile && styles.tileError,
-            ]}
-          >
-            <Text style={styles.tileText}>{tile}</Text>
-          </Pressable>
-        ))}
-      </View>
+    <View style={styles.grid}>
+      {displayTiles.map((tile, index) => (
+        <Pressable
+          key={`${tile}-${index}`}
+          onPress={() => handleTilePress(tile)}
+          style={({ pressed }) => [
+            styles.tile,
+            pressed && styles.tilePressed,
+            errorTile === tile && styles.tileError,
+          ]}
+        >
+          <Text style={styles.tileText}>{tile}</Text>
+        </Pressable>
+      ))}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-  },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
     gap: spacing.md,
+    justifyContent: 'center',
   },
   tile: {
-    minWidth: 80,
-    minHeight: 80,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
     backgroundColor: colors.surface,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     borderRadius: borderRadius.lg,
-    borderWidth: 3,
-    borderColor: colors.primary,
-    alignItems: 'center',
+    minWidth: 80,
+    minHeight: 60,
     justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.primary,
     ...shadows.md,
   },
   tilePressed: {
+    backgroundColor: colors.primaryLight,
     transform: [{ scale: 0.95 }],
-    backgroundColor: colors.highlight,
   },
   tileError: {
-    backgroundColor: colors.error + '20',
+    backgroundColor: colors.error,
     borderColor: colors.error,
   },
   tileText: {
-    ...typography.tile,
+    ...typography.sacred,
     color: colors.text,
+    fontWeight: '600',
   },
 });

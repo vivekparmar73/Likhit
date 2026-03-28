@@ -1,45 +1,34 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Modal, Pressable } from 'react-native';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { colors, typography, spacing, borderRadius } from '../../constants/theme';
+import { View, Text, ScrollView, Pressable, TextInput, Modal, StyleSheet } from 'react-native';
 import { COUNT_OPTIONS } from '../../constants/config';
-import { Chip } from '../ui/Chip';
+import { colors, typography, spacing, borderRadius, shadows } from '../../constants/theme';
 import { Button } from '../ui/Button';
 
-interface CountSelectorProps {
+type CountSelectorProps = {
   selectedCount: number;
   onSelect: (count: number) => void;
-}
+};
 
 export function CountSelector({ selectedCount, onSelect }: CountSelectorProps) {
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [customValue, setCustomValue] = useState('');
-  const [error, setError] = useState('');
 
-  const handleCustom = () => {
-    setShowCustomModal(true);
-    setCustomValue('');
-    setError('');
+  const handleChipPress = (value: number) => {
+    if (value === -1) {
+      setShowCustomModal(true);
+    } else {
+      onSelect(value);
+    }
   };
 
   const handleCustomSubmit = () => {
-    const value = parseInt(customValue, 10);
-    
-    if (isNaN(value) || value < 1) {
-      setError('Please enter a valid number greater than 0');
-      return;
+    const count = parseInt(customValue, 10);
+    if (count && count > 0 && count <= 1000000) {
+      onSelect(count);
+      setShowCustomModal(false);
+      setCustomValue('');
     }
-    
-    if (value > 100000) {
-      setError('Maximum count is 100,000');
-      return;
-    }
-    
-    onSelect(value);
-    setShowCustomModal(false);
   };
-
-  const displayLabel = COUNT_OPTIONS.find(opt => opt.value === selectedCount)?.label || `${selectedCount}`;
 
   return (
     <View style={styles.container}>
@@ -47,64 +36,76 @@ export function CountSelector({ selectedCount, onSelect }: CountSelectorProps) {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chipContainer}
+        contentContainerStyle={styles.scrollContent}
       >
-        {COUNT_OPTIONS.map(option => (
-          <Chip
-            key={option.value}
-            label={option.label}
-            selected={option.value === -1 ? false : selectedCount === option.value}
-            onPress={() => option.value === -1 ? handleCustom() : onSelect(option.value)}
-            style={styles.chip}
-          />
-        ))}
-      </ScrollView>
-      {selectedCount > 0 && !COUNT_OPTIONS.find(opt => opt.value === selectedCount) && (
-        <Text style={styles.customIndicator}>Custom: {selectedCount} repetitions</Text>
-      )}
+        {COUNT_OPTIONS.map(option => {
+          const isSelected = option.value === -1 
+            ? !COUNT_OPTIONS.some(o => o.value === selectedCount && o.value !== -1)
+            : option.value === selectedCount;
 
-      {/* Custom Input Modal */}
+          return (
+            <Pressable
+              key={option.value}
+              onPress={() => handleChipPress(option.value)}
+              style={({ pressed }) => [
+                styles.chip,
+                isSelected && styles.chipSelected,
+                pressed && styles.chipPressed,
+              ]}
+            >
+              <Text style={[
+                styles.chipText,
+                isSelected && styles.chipTextSelected,
+              ]}>
+                {option.value === -1 && selectedCount !== 108 && !COUNT_OPTIONS.some(o => o.value === selectedCount)
+                  ? selectedCount.toLocaleString()
+                  : option.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+
+      {/* Custom Count Modal */}
       <Modal
         visible={showCustomModal}
         transparent
         animationType="fade"
         onRequestClose={() => setShowCustomModal(false)}
       >
-        <Pressable 
-          style={styles.modalOverlay}
-          onPress={() => setShowCustomModal(false)}
-        >
-          <Pressable style={styles.modalContent} onPress={e => e.stopPropagation()}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Custom Count</Text>
-              <Pressable onPress={() => setShowCustomModal(false)}>
-                <MaterialIcons name="close" size={24} color={colors.text} />
-              </Pressable>
-            </View>
-            
-            <Text style={styles.modalLabel}>Enter repetition count (1 - 100,000)</Text>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Enter Custom Count</Text>
+            <Text style={styles.modalHint}>Enter a number between 1 and 1,000,000</Text>
             <TextInput
-              style={styles.input}
               value={customValue}
-              onChangeText={(text) => {
-                setCustomValue(text);
-                setError('');
-              }}
+              onChangeText={setCustomValue}
+              placeholder="1008"
+              placeholderTextColor={colors.unwritten}
               keyboardType="number-pad"
-              placeholder="e.g., 108, 500, 2500"
-              placeholderTextColor={colors.textTertiary}
+              style={styles.modalInput}
               autoFocus
             />
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
-            
-            <Button
-              title="Set Count"
-              onPress={handleCustomSubmit}
-              size="large"
-              style={styles.submitButton}
-            />
-          </Pressable>
-        </Pressable>
+            <View style={styles.modalButtons}>
+              <Button
+                title="Cancel"
+                onPress={() => {
+                  setShowCustomModal(false);
+                  setCustomValue('');
+                }}
+                variant="outline"
+                size="medium"
+                style={styles.modalButton}
+              />
+              <Button
+                title="Confirm"
+                onPress={handleCustomSubmit}
+                size="medium"
+                style={styles.modalButton}
+              />
+            </View>
+          </View>
+        </View>
       </Modal>
     </View>
   );
@@ -119,65 +120,80 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: spacing.md,
   },
-  chipContainer: {
+  scrollContent: {
+    gap: spacing.md,
     paddingHorizontal: spacing.xs,
-    gap: spacing.sm,
   },
   chip: {
-    marginHorizontal: spacing.xs,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: colors.surfaceDim,
+    minWidth: 80,
+    alignItems: 'center',
+    ...shadows.sm,
   },
-  customIndicator: {
-    ...typography.caption,
-    color: colors.primary,
-    marginTop: spacing.sm,
-    textAlign: 'center',
+  chipSelected: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primaryDark,
+  },
+  chipPressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.95 }],
+  },
+  chipText: {
+    ...typography.subheading,
+    color: colors.text,
     fontWeight: '600',
+  },
+  chipTextSelected: {
+    color: '#FFFFFF',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: colors.overlay,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+    padding: spacing.xl,
   },
   modalContent: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
+    backgroundColor: colors.background,
+    borderRadius: borderRadius.xl,
     padding: spacing.xl,
-    width: '85%',
+    width: '100%',
     maxWidth: 400,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.lg,
+    ...shadows.lg,
   },
   modalTitle: {
     ...typography.heading,
     color: colors.text,
-  },
-  modalLabel: {
-    ...typography.body,
-    color: colors.textSecondary,
-    marginBottom: spacing.md,
-  },
-  input: {
-    ...typography.bodyLarge,
-    color: colors.text,
-    backgroundColor: colors.background,
-    borderWidth: 2,
-    borderColor: colors.surfaceDim,
-    borderRadius: borderRadius.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    textAlign: 'center',
     marginBottom: spacing.sm,
   },
-  errorText: {
+  modalHint: {
     ...typography.caption,
-    color: colors.error,
-    marginBottom: spacing.md,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
   },
-  submitButton: {
-    marginTop: spacing.md,
+  modalInput: {
+    ...typography.title,
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: colors.surfaceDim,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  modalButton: {
+    flex: 1,
   },
 });

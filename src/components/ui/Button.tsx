@@ -1,134 +1,118 @@
 import React from 'react';
-import { Pressable, Text, StyleSheet, ViewStyle, TextStyle, View } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
-import { colors, typography, borderRadius, shadows, spacing } from '../../constants/theme';
+import { Pressable, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { colors, typography, spacing, borderRadius, shadows } from '../../constants/theme';
 
-interface ButtonProps {
+type ButtonProps = {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: 'primary' | 'outline' | 'text';
   size?: 'small' | 'medium' | 'large';
   disabled?: boolean;
   style?: ViewStyle;
-}
+};
 
-export function Button({ title, onPress, variant = 'primary', size = 'medium', disabled = false, style }: ButtonProps) {
-  const isPrimary = variant === 'primary';
+export function Button({
+  title,
+  onPress,
+  variant = 'primary',
+  size = 'medium',
+  disabled = false,
+  style,
+}: ButtonProps) {
+  const getButtonStyle = () => {
+    const baseStyle = [styles.button, styles[`button_${variant}`], styles[`button_${size}`]];
+    if (disabled) baseStyle.push(styles.buttonDisabled);
+    if (style) baseStyle.push(style);
+    return baseStyle;
+  };
 
-  const innerContent = (pressed: boolean) => (
-    <View style={[
-      styles.contentContainer,
-      styles[size],
-      !isPrimary && styles[variant],
-    ]}>
-      <Text
-        numberOfLines={1}
-        adjustsFontSizeToFit
-        style={[
-          styles.text,
-          styles[`${variant}Text` as keyof typeof styles] as TextStyle,
-          pressed && styles.pressedText,
-          disabled && styles.disabledText,
-        ]}
-      >
-        {title}
-      </Text>
-    </View>
-  );
+  const getTextStyle = (): TextStyle[] => {
+    return [styles.text, styles[`text_${variant}`], styles[`text_${size}`]];
+  };
 
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
       style={({ pressed }) => [
-        styles.base,
-        pressed && styles.pressed,
-        disabled && styles.disabled,
-        style,
+        ...getButtonStyle(),
+        pressed && !disabled && styles.pressed,
       ]}
     >
-      {({ pressed }) => (
-        isPrimary ? (
-          <LinearGradient
-            colors={['#FF512F', '#DD2476']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.gradientContainer}
-          >
-            {innerContent(pressed)}
-          </LinearGradient>
-        ) : (
-          innerContent(pressed)
-        )
-      )}
+      <Text style={getTextStyle()}>{title}</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  base: {
-    borderRadius: borderRadius.md,
-    overflow: 'hidden',
-    ...shadows.sm,
-  },
-  gradientContainer: {
-    borderRadius: borderRadius.md,
-  },
-  contentContainer: {
+  button: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius.lg,
   },
-  primary: {
-    // Primary is handled by LinearGradient now
+
+  // Variants
+  button_primary: {
+    backgroundColor: colors.primary,
+    ...shadows.sm,
   },
-  secondary: {
-    backgroundColor: colors.secondary,
-  },
-  outline: {
-    backgroundColor: colors.surface,
+  button_outline: {
+    backgroundColor: 'transparent',
     borderWidth: 2,
-    borderColor: '#DD2476', // Adjusted to match gradient aesthetic
+    borderColor: colors.primary,
   },
-  small: {
+  button_text: {
+    backgroundColor: 'transparent',
+  },
+
+  // Sizes
+  button_small: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     minHeight: 36,
   },
-  medium: {
+  button_medium: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    minHeight: 48,
+    minHeight: 44,
   },
-  large: {
+  button_large: {
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.lg,
-    minHeight: 56,
+    minHeight: 52,
   },
+
+  // Text Variants
+  text_primary: {
+    color: '#FFFFFF',
+  },
+  text_outline: {
+    color: colors.primary,
+  },
+  text_text: {
+    color: colors.primary,
+  },
+
+  // Text Sizes
+  text_small: {
+    ...typography.caption,
+    fontWeight: '600',
+  },
+  text_medium: {
+    ...typography.body,
+    fontWeight: '600',
+  },
+  text_large: {
+    ...typography.subheading,
+    fontWeight: '700',
+  },
+
+  // States
   pressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.97 }],
+    opacity: 0.7,
+    transform: [{ scale: 0.98 }],
   },
-  disabled: {
+  buttonDisabled: {
     opacity: 0.5,
   },
-  text: {
-    ...typography.button,
-    textAlign: 'center',
-  },
-  primaryText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  secondaryText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-  outlineText: {
-    color: '#DD2476',
-    fontWeight: '700',
-  },
-  pressedText: {},
-  disabledText: {},
 });

@@ -1,63 +1,77 @@
 import React from 'react';
-import { View, Text, Modal, StyleSheet, Pressable, ScrollView } from 'react-native';
-import { colors, typography, spacing, borderRadius, shadows } from '../../constants/theme';
+import { Modal, View, Text, StyleSheet, ScrollView } from 'react-native';
 import { BADGES } from '../../constants/config';
-import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
+import { Badge } from '../ui/Badge';
+import { colors, typography, spacing, borderRadius, shadows } from '../../constants/theme';
 
-interface CompletionModalProps {
+type CompletionModalProps = {
   visible: boolean;
   word: string;
   count: number;
   earnedBadges: string[];
   onClose: () => void;
-}
+};
 
-export function CompletionModal({ visible, word, count, earnedBadges, onClose }: CompletionModalProps) {
-  const badgeDetails = earnedBadges.map(id => 
-    Object.values(BADGES).find(b => b.id === id)
-  ).filter(Boolean);
+export function CompletionModal({
+  visible,
+  word,
+  count,
+  earnedBadges,
+  onClose,
+}: CompletionModalProps) {
+  const badges = earnedBadges.map(id => BADGES[id]).filter(Boolean);
 
   return (
     <Modal
       visible={visible}
-      animationType="fade"
       transparent
+      animationType="fade"
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.modal}>
-          <ScrollView contentContainerStyle={styles.content}>
-            <Text style={styles.emoji}>🎉</Text>
-            <Text style={styles.title}>Sankalp Completed!</Text>
-            <Text style={styles.message}>
-              You have successfully written{'\n'}
-              <Text style={styles.word}>{word}</Text>{'\n'}
-              {count.toLocaleString()} times
-            </Text>
+        <View style={styles.content}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Celebration Icon */}
+            <Text style={styles.celebrationIcon}>🎉</Text>
 
-            {badgeDetails.length > 0 && (
-              <View style={styles.badgesSection}>
-                <Text style={styles.badgesTitle}>Badges Earned</Text>
+            {/* Title */}
+            <Text style={styles.title}>Sankalp Complete!</Text>
+
+            {/* Message */}
+            <Text style={styles.message}>
+              You have successfully completed {count} repetitions of
+            </Text>
+            <Text style={styles.word}>{word}</Text>
+
+            {/* Badges */}
+            {badges.length > 0 && (
+              <>
+                <Text style={styles.badgesTitle}>New Badges Earned!</Text>
                 <View style={styles.badgesGrid}>
-                  {badgeDetails.map(badge => (
-                    badge && (
+                  {badges.map(badge => (
+                    <View key={badge.id} style={styles.badgeContainer}>
                       <Badge
-                        key={badge.id}
                         icon={badge.icon}
                         name={badge.name}
                         description={badge.description}
+                        size="medium"
                       />
-                    )
+                    </View>
                   ))}
                 </View>
-              </View>
+              </>
             )}
 
+            {/* Close Button */}
             <Button
               title="Continue"
               onPress={onClose}
-              style={styles.button}
+              size="large"
+              style={styles.closeButton}
             />
           </ScrollView>
         </View>
@@ -69,26 +83,26 @@ export function CompletionModal({ visible, word, count, earnedBadges, onClose }:
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: colors.overlay,
-    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
-    padding: spacing.lg,
+    alignItems: 'center',
+    padding: spacing.xl,
   },
-  modal: {
-    backgroundColor: colors.surface,
+  content: {
+    backgroundColor: colors.background,
     borderRadius: borderRadius.xl,
     width: '100%',
-    maxWidth: 400,
+    maxWidth: 500,
     maxHeight: '80%',
     ...shadows.lg,
   },
-  content: {
+  scrollContent: {
     padding: spacing.xl,
     alignItems: 'center',
   },
-  emoji: {
+  celebrationIcon: {
     fontSize: 64,
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   title: {
     ...typography.title,
@@ -100,30 +114,33 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.textSecondary,
     textAlign: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.sm,
   },
   word: {
     ...typography.heading,
     color: colors.text,
-    fontWeight: '700',
-  },
-  badgesSection: {
-    width: '100%',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
+    textAlign: 'center',
   },
   badgesTitle: {
-    ...typography.subheading,
+    ...typography.heading,
     color: colors.text,
+    marginBottom: spacing.lg,
     textAlign: 'center',
-    marginBottom: spacing.md,
   },
   badgesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
     gap: spacing.md,
+    justifyContent: 'center',
+    marginBottom: spacing.xl,
   },
-  button: {
+  badgeContainer: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    ...shadows.md,
+  },
+  closeButton: {
     width: '100%',
   },
 });

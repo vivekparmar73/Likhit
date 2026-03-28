@@ -1,98 +1,90 @@
+// Theme Configuration for Likhit App
+// Spiritual color palette with warm, devotional tones
+
 export const colors = {
-  // Spiritual palette
-  primary: '#FF6B35', // Saffron
-  primaryDark: '#D84315',
-  secondary: '#8B4513', // Sandalwood
-  background: '#FFF8E7', // Warm cream
+  // Primary Colors (Saffron/Orange)
+  primary: '#FF9933',
+  primaryLight: '#FFB366',
+  primaryDark: '#E67300',
+
+  // Secondary Colors (Sandalwood/Gold)
+  secondary: '#D4AF37',
+  secondaryLight: '#E6C96B',
+  secondaryDark: '#B8941F',
+
+  // Background Colors
+  background: '#FFF8F0',
   surface: '#FFFFFF',
   surfaceDim: '#F5E6D3',
-  
-  // Text
-  text: '#2C1810',
-  textSecondary: '#6D4C41',
-  textTertiary: '#A1887F',
-  
-  // States
-  success: '#66BB6A',
-  error: '#EF5350',
-  warning: '#FFA726',
-  
-  // Opacity levels
-  overlay: 'rgba(0, 0, 0, 0.5)',
-  shimmer: 'rgba(255, 107, 53, 0.1)',
-  written: '#2C1810',
-  unwritten: 'rgba(44, 24, 16, 0.15)',
-  
-  // Accents
-  badge: '#FFD54F',
-  highlight: '#FFECB3',
-};
+  highlight: '#FFF4E6',
 
-export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 16,
-  lg: 24,
-  xl: 32,
-  xxl: 48,
+  // Text Colors
+  text: '#2C1810',
+  textSecondary: '#8B6F47',
+  textTertiary: '#A68A5C',
+
+  // Sacred Writing States
+  written: '#2C1810',
+  unwritten: '#D4C4B0',
+
+  // Semantic Colors
+  success: '#4CAF50',
+  error: '#F44336',
+  warning: '#FF9800',
+
+  // Badge Colors
+  badgeGold: '#FFD700',
+  badgeSilver: '#C0C0C0',
+  badgeBronze: '#CD7F32',
 };
 
 export const typography = {
-  // Devanagari optimized
   title: {
     fontSize: 28,
     fontWeight: '700' as const,
     lineHeight: 36,
   },
   heading: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '600' as const,
-    lineHeight: 30,
+    lineHeight: 28,
   },
   subheading: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600' as const,
-    lineHeight: 26,
+    lineHeight: 24,
   },
   body: {
     fontSize: 16,
     fontWeight: '400' as const,
     lineHeight: 24,
   },
-  bodyLarge: {
-    fontSize: 18,
-    fontWeight: '400' as const,
-    lineHeight: 28,
-  },
   caption: {
     fontSize: 14,
     fontWeight: '400' as const,
     lineHeight: 20,
   },
-  button: {
-    fontSize: 16,
-    fontWeight: '600' as const,
-    lineHeight: 22,
-  },
-  // For written text display
   sacred: {
-    fontSize: 32,
-    fontWeight: '500' as const,
-    lineHeight: 48,
-    letterSpacing: 2,
-  },
-  tile: {
     fontSize: 24,
-    fontWeight: '600' as const,
-    lineHeight: 32,
+    fontWeight: '500' as const,
+    lineHeight: 36,
   },
 };
 
-export const borderRadius = {
+export const spacing = {
+  xs: 4,
   sm: 8,
   md: 12,
   lg: 16,
   xl: 24,
+  xxl: 32,
+};
+
+export const borderRadius = {
+  sm: 4,
+  md: 8,
+  lg: 12,
+  xl: 16,
   round: 999,
 };
 

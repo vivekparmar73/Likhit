@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAlert } from '@/template';
+import { useAlert } from '../template';
 import { useApp } from '../hooks/useApp';
 import { validateInput } from '../services/textProcessor';
 import { colors, typography, spacing, borderRadius } from '../constants/theme';

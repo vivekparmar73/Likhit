@@ -5,7 +5,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { useAlert } from '@/template';
+import { useAlert } from '../template';
 import { useApp } from '../hooks/useApp';
 import { getUniqueTokens } from '../services/textProcessor';
 import { colors, typography, spacing, borderRadius } from '../constants/theme';

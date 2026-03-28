@@ -1,13 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { colors, typography, spacing } from '../../constants/theme';
+import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { LANGUAGES } from '../../constants/config';
-import { Chip } from '../ui/Chip';
+import { colors, typography, spacing, borderRadius, shadows } from '../../constants/theme';
 
-interface LanguageSelectorProps {
+type LanguageSelectorProps = {
   selectedLanguage: string;
   onSelect: (code: string) => void;
-}
+};
 
 export function LanguageSelector({ selectedLanguage, onSelect }: LanguageSelectorProps) {
   return (
@@ -16,18 +15,31 @@ export function LanguageSelector({ selectedLanguage, onSelect }: LanguageSelecto
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chipContainer}
+        contentContainerStyle={styles.scrollContent}
       >
         {LANGUAGES.map(lang => (
-          <View key={lang.code} style={styles.chipWrapper}>
-            <Chip
-              label={lang.label}
-              selected={selectedLanguage === lang.code}
-              onPress={() => onSelect(lang.code)}
-              style={styles.chip}
-            />
-            <Text style={styles.langName}>{lang.name.split(' ')[0]}</Text>
-          </View>
+          <Pressable
+            key={lang.code}
+            onPress={() => onSelect(lang.code)}
+            style={({ pressed }) => [
+              styles.chip,
+              selectedLanguage === lang.code && styles.chipSelected,
+              pressed && styles.chipPressed,
+            ]}
+          >
+            <Text style={[
+              styles.chipNative,
+              selectedLanguage === lang.code && styles.chipTextSelected,
+            ]}>
+              {lang.nativeName}
+            </Text>
+            <Text style={[
+              styles.chipEnglish,
+              selectedLanguage === lang.code && styles.chipTextSelected,
+            ]}>
+              {lang.name}
+            </Text>
+          </Pressable>
         ))}
       </ScrollView>
     </View>
@@ -43,20 +55,39 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: spacing.md,
   },
-  chipContainer: {
+  scrollContent: {
+    gap: spacing.md,
     paddingHorizontal: spacing.xs,
-    gap: spacing.sm,
-  },
-  chipWrapper: {
-    alignItems: 'center',
-    marginHorizontal: spacing.xs,
   },
   chip: {
-    marginBottom: spacing.xs,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: colors.surfaceDim,
+    minWidth: 100,
+    alignItems: 'center',
+    ...shadows.sm,
   },
-  langName: {
+  chipSelected: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primaryDark,
+  },
+  chipPressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.95 }],
+  },
+  chipNative: {
+    ...typography.subheading,
+    color: colors.text,
+    fontWeight: '600',
+  },
+  chipEnglish: {
     ...typography.caption,
     color: colors.textSecondary,
-    fontSize: 11,
+  },
+  chipTextSelected: {
+    color: '#FFFFFF',
   },
 });

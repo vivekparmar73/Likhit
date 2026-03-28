@@ -1,85 +1,93 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
 import { colors, typography, spacing } from '../../constants/theme';
 
-interface CompletionAnimationProps {
+type CompletionAnimationProps = {
   word: string;
   count: number;
   onComplete: () => void;
-}
+};
 
+type Flower = {
+  id: number;
+  left: Animated.Value;
+  top: Animated.Value;
+  rotation: Animated.Value;
+  icon: string;
+};
+
+const FLOWER_ICONS = ['🌸', '🌺', '🌼', '🌻', '🏵️', '🪷'];
 const { width, height } = Dimensions.get('window');
-const FLOWER_EMOJIS = ['🌸', '🌺', '🌼', '🌻', '🏵️', '💮', '🪷', '🌹'];
-const NUM_FLOWERS = 30;
 
 export function CompletionAnimation({ word, count, onComplete }: CompletionAnimationProps) {
+  const [flowers, setFlowers] = useState<Flower[]>([]);
   const textScale = useRef(new Animated.Value(0)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
-  const flowers = useRef(
-    Array.from({ length: NUM_FLOWERS }, () => ({
-      x: Math.random() * width,
-      y: useRef(new Animated.Value(-50)).current,
-      rotation: useRef(new Animated.Value(0)).current,
-      emoji: FLOWER_EMOJIS[Math.floor(Math.random() * FLOWER_EMOJIS.length)],
-      delay: Math.random() * 1000,
-      duration: 3000 + Math.random() * 2000,
-    }))
-  ).current;
 
   useEffect(() => {
+    // Create flowers
+    const newFlowers: Flower[] = Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      left: new Animated.Value(Math.random() * width),
+      top: new Animated.Value(-50),
+      rotation: new Animated.Value(0),
+      icon: FLOWER_ICONS[Math.floor(Math.random() * FLOWER_ICONS.length)],
+    }));
+    setFlowers(newFlowers);
+
     // Animate text
-    Animated.parallel([
-      Animated.spring(textScale, {
-        toValue: 1,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-      Animated.timing(textOpacity, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
+    Animated.sequence([
+      Animated.parallel([
+        Animated.spring(textScale, {
+          toValue: 1,
+          tension: 50,
+          friction: 7,
+          useNativeDriver: true,
+        }),
+        Animated.timing(textOpacity, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.delay(2000),
     ]).start();
 
-    // Animate flowers falling
-    flowers.forEach((flower) => {
-      setTimeout(() => {
-        Animated.parallel([
-          Animated.timing(flower.y, {
-            toValue: height + 50,
-            duration: flower.duration,
-            useNativeDriver: true,
-          }),
-          Animated.timing(flower.rotation, {
-            toValue: 360 * (2 + Math.random()),
-            duration: flower.duration,
-            useNativeDriver: true,
-          }),
-        ]).start();
-      }, flower.delay);
+    // Animate flowers
+    newFlowers.forEach((flower, index) => {
+      Animated.parallel([
+        Animated.timing(flower.top, {
+          toValue: height + 50,
+          duration: 3000 + Math.random() * 2000,
+          delay: index * 100,
+          useNativeDriver: false,
+        }),
+        Animated.timing(flower.rotation, {
+          toValue: 360,
+          duration: 2000,
+          delay: index * 100,
+          useNativeDriver: true,
+        }),
+      ]).start();
     });
 
-    // Auto-close after animation
-    const timeout = setTimeout(() => {
-      onComplete();
-    }, 4000);
-
-    return () => clearTimeout(timeout);
+    // Complete after animation
+    const timer = setTimeout(onComplete, 3500);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
     <View style={styles.container}>
       {/* Falling Flowers */}
-      {flowers.map((flower, index) => (
+      {flowers.map(flower => (
         <Animated.Text
-          key={index}
+          key={flower.id}
           style={[
             styles.flower,
             {
-              left: flower.x,
+              left: flower.left,
+              top: flower.top,
               transform: [
-                { translateY: flower.y },
                 {
                   rotate: flower.rotation.interpolate({
                     inputRange: [0, 360],
@@ -90,7 +98,7 @@ export function CompletionAnimation({ word, count, onComplete }: CompletionAnima
             },
           ]}
         >
-          {flower.emoji}
+          {flower.icon}
         </Animated.Text>
       ))}
 
@@ -104,10 +112,9 @@ export function CompletionAnimation({ word, count, onComplete }: CompletionAnima
           },
         ]}
       >
-        <Text style={styles.congratsText}>🎉 Completed! 🎉</Text>
-        <Text style={styles.wordText}>{word}</Text>
-        <Text style={styles.countText}>{count} Times</Text>
-        <Text style={styles.messageText}>Your devotion shines bright!</Text>
+        <Text style={styles.completionText}>✨ Completed ✨</Text>
+        <Text style={styles.word}>{word}</Text>
+        <Text style={styles.count}>{count} Times</Text>
       </Animated.View>
     </View>
   );
@@ -116,42 +123,32 @@ export function CompletionAnimation({ word, count, onComplete }: CompletionAnima
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: colors.overlay,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 1000,
   },
   flower: {
     position: 'absolute',
-    fontSize: 32,
+    fontSize: 40,
   },
   textContainer: {
-    backgroundColor: colors.surface,
-    borderRadius: 24,
-    padding: spacing.xxl,
     alignItems: 'center',
-    maxWidth: '85%',
-    borderWidth: 3,
-    borderColor: colors.primary,
+    padding: spacing.xl,
   },
-  congratsText: {
-    ...typography.heading,
-    color: colors.primary,
+  completionText: {
+    ...typography.title,
+    color: colors.secondary,
     marginBottom: spacing.md,
   },
-  wordText: {
-    ...typography.title,
-    fontSize: 36,
-    color: colors.text,
+  word: {
+    ...typography.sacred,
+    fontSize: 32,
+    color: colors.primary,
     marginBottom: spacing.sm,
   },
-  countText: {
+  count: {
     ...typography.heading,
-    color: colors.secondary,
-    marginBottom: spacing.lg,
-  },
-  messageText: {
-    ...typography.body,
-    color: colors.textSecondary,
-    textAlign: 'center',
+    color: '#FFFFFF',
   },
 });

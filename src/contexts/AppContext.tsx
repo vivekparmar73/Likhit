@@ -1,90 +1,89 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import {
   Session,
-  CompletedSession,
-  UserStats,
+  HistoryItem,
+  Stats,
+  loadCurrentSession,
   saveCurrentSession,
-  getCurrentSession,
-  saveCompletedSession,
-  getHistory,
-  saveEarnedBadges,
-  getEarnedBadges,
-  updateStats,
-  getStats,
+  loadHistory,
+  saveHistory,
+  loadBadges,
+  saveBadges,
+  loadStats,
+  saveStats,
 } from '../services/storage';
 import { generateAllTokens } from '../services/textProcessor';
-import { AUTOSAVE_INTERVAL, BADGES } from '../constants/config';
+import { BADGES } from '../constants/config';
 
-interface AppContextType {
-  // Session state
+export type AppContextType = {
   currentSession: Session | null;
   allTokens: string[];
-  
-  // History & stats
-  history: CompletedSession[];
+  history: HistoryItem[];
   earnedBadges: string[];
-  stats: UserStats;
-  
-  // Actions
-  startNewSession: (word: string, language: string, count: number, mode: 'character' | 'word', shuffleEnabled: boolean) => void;
-  updateProgress: (newProgress: number) => void;
+  stats: Stats;
+  startNewSession: (
+    word: string,
+    language: string,
+    count: number,
+    mode: 'character' | 'word',
+    shuffleEnabled: boolean
+  ) => void;
+  updateProgress: (progress: number) => void;
   completeSession: () => Promise<string[]>;
-  resumeSession: () => void;
   clearCurrentSession: () => void;
-  refreshHistory: () => void;
-}
+};
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
   const [allTokens, setAllTokens] = useState<string[]>([]);
-  const [history, setHistory] = useState<CompletedSession[]>([]);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
   const [earnedBadges, setEarnedBadges] = useState<string[]>([]);
-  const [stats, setStats] = useState<UserStats>({
+  const [stats, setStats] = useState<Stats>({
     totalCompletions: 0,
     totalRepetitions: 0,
     currentStreak: 0,
     longestStreak: 0,
-    lastCompletionDate: null,
   });
-  
-  const [saveCounter, setSaveCounter] = useState(0);
 
-  // Load initial data
+  // Load data on mount
   useEffect(() => {
-    loadInitialData();
+    loadData();
   }, []);
 
-  // Auto-save on progress changes
+  // Save current session whenever it changes
   useEffect(() => {
-    if (currentSession && saveCounter % AUTOSAVE_INTERVAL === 0 && saveCounter > 0) {
+    if (currentSession !== null) {
       saveCurrentSession(currentSession);
     }
-  }, [saveCounter]);
+  }, [currentSession]);
 
-  async function loadInitialData() {
+  async function loadData() {
     const [session, historyData, badges, statsData] = await Promise.all([
-      getCurrentSession(),
-      getHistory(),
-      getEarnedBadges(),
-      getStats(),
+      loadCurrentSession(),
+      loadHistory(),
+      loadBadges(),
+      loadStats(),
     ]);
-    
+
     if (session) {
       setCurrentSession(session);
       const tokens = generateAllTokens(session.word, session.targetCount, session.mode);
       setAllTokens(tokens);
     }
-    
     setHistory(historyData);
     setEarnedBadges(badges);
     setStats(statsData);
   }
 
-  function startNewSession(word: string, language: string, count: number, mode: 'character' | 'word', shuffleEnabled: boolean) {
-    const tokens = generateAllTokens(word, count, mode);
-    
+  function startNewSession(
+    word: string,
+    language: string,
+    count: number,
+    mode: 'character' | 'word',
+    shuffleEnabled: boolean
+  ) {
     const session: Session = {
       word,
       language,
@@ -93,86 +92,90 @@ export function AppProvider({ children }: { children: ReactNode }) {
       shuffleEnabled,
       progress: 0,
       startedAt: new Date().toISOString(),
-      totalTokens: tokens.length,
     };
-    
     setCurrentSession(session);
+
+    const tokens = generateAllTokens(word, count, mode);
     setAllTokens(tokens);
-    saveCurrentSession(session);
   }
 
-  function updateProgress(newProgress: number) {
-    if (!currentSession) return;
-    
-    const updated = { ...currentSession, progress: newProgress };
-    setCurrentSession(updated);
-    setSaveCounter(prev => prev + 1);
+  function updateProgress(progress: number) {
+    if (currentSession) {
+      const updatedSession = { ...currentSession, progress };
+      setCurrentSession(updatedSession);
+      
+      // Auto-save every 10 taps for large counts
+      if (progress % 10 === 0) {
+        saveCurrentSession(updatedSession);
+      }
+    }
   }
 
   async function completeSession(): Promise<string[]> {
     if (!currentSession) return [];
-    
-    const duration = Date.now() - new Date(currentSession.startedAt).getTime();
+
+    const completionDate = new Date().toISOString();
+    const duration = new Date(completionDate).getTime() - new Date(currentSession.startedAt).getTime();
+
+    // Check for new badges
     const newBadges: string[] = [];
     
-    // Check for new badges
-    if (earnedBadges.length === 0) {
-      newBadges.push(BADGES.FIRST_COMPLETION.id);
+    // First completion badge
+    if (history.length === 0 && !earnedBadges.includes('first')) {
+      newBadges.push('first');
     }
-    
+
     // Count-based badges
-    const countBadges = [
-      { id: BADGES.SEEKER.id, count: 11 },
-      { id: BADGES.DEVOTEE.id, count: 108 },
-      { id: BADGES.SADHAK.id, count: 1008 },
-      { id: BADGES.SIDDHI.id, count: 10000 },
-    ];
-    
-    for (const badge of countBadges) {
-      if (currentSession.targetCount >= badge.count && !earnedBadges.includes(badge.id)) {
-        newBadges.push(badge.id);
+    Object.values(BADGES).forEach(badge => {
+      if (typeof badge.requirement === 'number') {
+        if (currentSession.targetCount >= badge.requirement && !earnedBadges.includes(badge.id)) {
+          newBadges.push(badge.id);
+        }
       }
-    }
-    
-    // Save completed session
-    const completed: CompletedSession = {
+    });
+
+    // Update stats
+    const newStats: Stats = {
+      totalCompletions: stats.totalCompletions + 1,
+      totalRepetitions: stats.totalRepetitions + currentSession.targetCount,
+      currentStreak: calculateNewStreak(stats, completionDate),
+      longestStreak: Math.max(
+        stats.longestStreak,
+        calculateNewStreak(stats, completionDate)
+      ),
+      lastCompletionDate: completionDate,
+    };
+
+    // Create history item
+    const historyItem: HistoryItem = {
       id: Date.now().toString(),
       word: currentSession.word,
       language: currentSession.language,
       count: currentSession.targetCount,
       mode: currentSession.mode,
-      shuffleEnabled: currentSession.shuffleEnabled,
-      completedAt: new Date().toISOString(),
+      completedAt: completionDate,
       duration,
       badgesEarned: newBadges,
     };
-    
-    await saveCompletedSession(completed);
-    
-    // Update badges
+
+    // Update state and storage
+    const updatedHistory = [historyItem, ...history];
     const updatedBadges = [...earnedBadges, ...newBadges];
-    setEarnedBadges(updatedBadges);
-    await saveEarnedBadges(updatedBadges);
-    
-    // Update stats
-    await updateStats(currentSession.targetCount);
-    const updatedStats = await getStats();
-    setStats(updatedStats);
-    
-    // Refresh history
-    const updatedHistory = await getHistory();
+
     setHistory(updatedHistory);
-    
-    // Clear current session
+    setEarnedBadges(updatedBadges);
+    setStats(newStats);
     setCurrentSession(null);
     setAllTokens([]);
-    await saveCurrentSession(null);
-    
-    return newBadges;
-  }
 
-  function resumeSession() {
-    // Already loaded in useEffect
+    await Promise.all([
+      saveHistory(updatedHistory),
+      saveBadges(updatedBadges),
+      saveStats(newStats),
+      saveCurrentSession(null),
+    ]);
+
+    return newBadges;
   }
 
   function clearCurrentSession() {
@@ -181,9 +184,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     saveCurrentSession(null);
   }
 
-  async function refreshHistory() {
-    const historyData = await getHistory();
-    setHistory(historyData);
+  function calculateNewStreak(currentStats: Stats, completionDate: string): number {
+    if (!currentStats.lastCompletionDate) return 1;
+
+    const lastDate = new Date(currentStats.lastCompletionDate);
+    const today = new Date(completionDate);
+    
+    // Reset time to midnight for date comparison
+    lastDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    
+    const diffDays = Math.floor((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+      // Same day
+      return currentStats.currentStreak;
+    } else if (diffDays === 1) {
+      // Consecutive day
+      return currentStats.currentStreak + 1;
+    } else {
+      // Streak broken
+      return 1;
+    }
   }
 
   return (
@@ -197,9 +219,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         startNewSession,
         updateProgress,
         completeSession,
-        resumeSession,
         clearCurrentSession,
-        refreshHistory,
       }}
     >
       {children}

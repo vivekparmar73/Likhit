@@ -1,3 +1,26 @@
+// App Configuration
+
+export type Language = {
+  code: string;
+  name: string;
+  nativeName: string;
+  script: string;
+};
+
+export const LANGUAGES: Language[] = [
+  { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी', script: 'Devanagari' },
+  { code: 'sa', name: 'Sanskrit', nativeName: 'संस्कृतम्', script: 'Devanagari' },
+  { code: 'mr', name: 'Marathi', nativeName: 'मराठी', script: 'Devanagari' },
+  { code: 'gu', name: 'Gujarati', nativeName: 'ગુજરાતી', script: 'Gujarati' },
+  { code: 'ta', name: 'Tamil', nativeName: 'தமிழ்', script: 'Tamil' },
+  { code: 'te', name: 'Telugu', nativeName: 'తెలుగు', script: 'Telugu' },
+  { code: 'kn', name: 'Kannada', nativeName: 'ಕನ್ನಡ', script: 'Kannada' },
+  { code: 'ml', name: 'Malayalam', nativeName: 'മലയാളം', script: 'Malayalam' },
+  { code: 'bn', name: 'Bengali', nativeName: 'বাংলা', script: 'Bengali' },
+  { code: 'pa', name: 'Punjabi', nativeName: 'ਪੰਜਾਬੀ', script: 'Gurmukhi' },
+  { code: 'en', name: 'English', nativeName: 'English', script: 'Latin' },
+];
+
 export const COUNT_OPTIONS = [
   { value: 11, label: '11' },
   { value: 21, label: '21' },
@@ -8,112 +31,100 @@ export const COUNT_OPTIONS = [
   { value: 1001, label: '1001' },
   { value: 1008, label: '1008' },
   { value: 10000, label: '10000' },
-  { value: -1, label: 'Custom' }, // -1 indicates custom input
+  { value: -1, label: 'Custom' },
 ];
 
-export const LANGUAGES = [
-  { code: 'hi', label: 'हिन्दी', name: 'Hindi (Devanagari)', script: 'devanagari' },
-  { code: 'sa', label: 'संस्कृत', name: 'Sanskrit', script: 'devanagari' },
-  { code: 'mr', label: 'मराठी', name: 'Marathi', script: 'devanagari' },
-  { code: 'gu', label: 'ગુજરાતી', name: 'Gujarati', script: 'gujarati' },
-  { code: 'ta', label: 'தமிழ்', name: 'Tamil', script: 'tamil' },
-  { code: 'te', label: 'తెలుగు', name: 'Telugu', script: 'telugu' },
-  { code: 'kn', label: 'ಕನ್ನಡ', name: 'Kannada', script: 'kannada' },
-  { code: 'ml', label: 'മലയാളം', name: 'Malayalam', script: 'malayalam' },
-  { code: 'bn', label: 'বাংলা', name: 'Bengali', script: 'bengali' },
-  { code: 'pa', label: 'ਪੰਜਾਬੀ', name: 'Punjabi', script: 'gurmukhi' },
-  { code: 'en', label: 'English', name: 'English', script: 'latin' },
-];
+export type Badge = {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  requirement: number | 'first' | 'streak';
+};
 
-export const BADGES = {
-  FIRST_COMPLETION: {
+export const BADGES: { [key: string]: Badge } = {
+  first: {
     id: 'first',
     name: 'First Steps',
-    description: 'Completed your first Sankalp',
-    icon: '🙏',
+    icon: '🌟',
+    description: 'Complete your first Sankalp',
+    requirement: 'first',
   },
-  SEEKER: {
+  seeker: {
     id: 'seeker',
     name: 'Seeker',
-    description: 'Completed 11 repetitions',
-    icon: '✨',
-    count: 11,
+    icon: '🙏',
+    description: 'Complete 11 repetitions',
+    requirement: 11,
   },
-  DEDICATED: {
-    id: 'dedicated',
+  devotee_21: {
+    id: 'devotee_21',
+    name: 'Devotee',
+    icon: '🪔',
+    description: 'Complete 21 repetitions',
+    requirement: 21,
+  },
+  devotee_51: {
+    id: 'devotee_51',
     name: 'Dedicated',
-    description: 'Completed 21 repetitions',
-    icon: '🌟',
-    count: 21,
+    icon: '🔱',
+    description: 'Complete 51 repetitions',
+    requirement: 51,
   },
-  COMMITTED: {
-    id: 'committed',
+  devotee_101: {
+    id: 'devotee_101',
     name: 'Committed',
-    description: 'Completed 51 repetitions',
-    icon: '💫',
-    count: 51,
+    icon: '📿',
+    description: 'Complete 101 repetitions',
+    requirement: 101,
   },
-  DEVOTED: {
+  devoted: {
     id: 'devoted',
     name: 'Devoted',
-    description: 'Completed 101 repetitions',
-    icon: '⭐',
-    count: 101,
-  },
-  DEVOTEE: {
-    id: 'devotee',
-    name: 'Devotee',
-    description: 'Completed 108 repetitions',
     icon: '🕉️',
-    count: 108,
+    description: 'Complete 108 repetitions',
+    requirement: 108,
   },
-  ADVANCED: {
-    id: 'advanced',
-    name: 'Advanced Sadhak',
-    description: 'Completed 501 repetitions',
-    icon: '🌺',
-    count: 501,
-  },
-  SADHAK: {
-    id: 'sadhak',
+  sadhak_501: {
+    id: 'sadhak_501',
     name: 'Sadhak',
-    description: 'Completed 1001 repetitions',
-    icon: '🔱',
-    count: 1001,
+    icon: '✨',
+    description: 'Complete 501 repetitions',
+    requirement: 501,
   },
-  MASTER: {
-    id: 'master',
-    name: 'Master',
-    description: 'Completed 1008 repetitions',
-    icon: '🪔',
-    count: 1008,
+  sadhak_1001: {
+    id: 'sadhak_1001',
+    name: 'Ascetic',
+    icon: '🌺',
+    description: 'Complete 1001 repetitions',
+    requirement: 1001,
   },
-  SIDDHI: {
+  sadhak: {
+    id: 'sadhak',
+    name: 'True Sadhak',
+    icon: '🏔️',
+    description: 'Complete 1008 repetitions',
+    requirement: 1008,
+  },
+  siddhi: {
     id: 'siddhi',
     name: 'Siddhi',
-    description: 'Completed 10000 repetitions',
-    icon: '🪷',
-    count: 10000,
+    icon: '👑',
+    description: 'Complete 10000 repetitions',
+    requirement: 10000,
+  },
+  streak_7: {
+    id: 'streak_7',
+    name: 'Weekly Devotee',
+    icon: '🔥',
+    description: 'Complete Sankalps for 7 consecutive days',
+    requirement: 'streak',
   },
 };
 
-export const PRESET_WORDS = {
-  hi: ['श्री राम', 'ॐ नमः शिवाय', 'श्री कृष्ण', 'जय श्री राम', 'हरे कृष्ण'],
-  sa: ['ॐ', 'ॐ नमः शिवाय', 'हरे राम हरे राम', 'ॐ गं गणपतये नमः'],
-  mr: ['श्री गणेशाय नमः', 'ॐ नमो भगवते वासुदेवाय', 'जय महाराष्ट्र'],
-  gu: ['શ્રી રામ', 'ૐ નમઃ શિવાય', 'શ્રી કૃષ્ણ'],
-  ta: ['ஓம்', 'ஓம் நமசிவாய', 'முருகா'],
-  te: ['ఓం', 'ఓం నమః శివాయ', 'శ్రీ వెంకటేశ్వరాయ నమః'],
-  kn: ['ಓಂ', 'ಓಂ ನಮಃ ಶಿವಾಯ', 'ಶ್ರೀ ರಾಮ'],
-  ml: ['ഓം', 'ഓം നമശ്ശിവായ', 'ശ്രീ കൃഷ്ണ'],
-  bn: ['ওঁ', 'ওঁ নমঃ শিবায়', 'জয় মা কালী'],
-  pa: ['ਵਾਹਿਗੁਰੂ', 'ਸਤਿਨਾਮ', 'ਇੱਕ ਓਅੰਕਾਰ'],
-  en: ['Shree Ram', 'Om Namah Shivaya', 'Jai Shree Ram'],
+export const STORAGE_KEYS = {
+  CURRENT_SESSION: '@likhit:current_session',
+  HISTORY: '@likhit:history',
+  BADGES: '@likhit:badges',
+  STATS: '@likhit:stats',
 };
-
-// Save progress every N taps to prevent data loss
-export const AUTOSAVE_INTERVAL = 10;
-
-// Virtualization settings for large counts
-export const RENDER_WINDOW = 50;
-export const RENDER_AHEAD = 20;

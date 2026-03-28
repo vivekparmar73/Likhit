@@ -1,55 +1,53 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, Pressable } from 'react-native';
-import { colors, typography, spacing, borderRadius, shadows } from '../../constants/theme';
-import { PRESET_WORDS } from '../../constants/config';
+import React from 'react';
+import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { colors, typography, spacing, borderRadius } from '../../constants/theme';
 
-interface WordInputProps {
+type WordInputProps = {
   value: string;
   onChange: (text: string) => void;
   language: string;
   error?: string;
-}
+};
 
 export function WordInput({ value, onChange, language, error }: WordInputProps) {
-  const presets = PRESET_WORDS[language as keyof typeof PRESET_WORDS] || [];
+  const getPlaceholder = () => {
+    switch (language) {
+      case 'hi':
+      case 'sa':
+      case 'mr':
+        return 'श्री राम, ॐ नमः शिवाय';
+      case 'gu':
+        return 'શ્રી રામ';
+      case 'ta':
+        return 'ஓம் நமசிவாய';
+      case 'te':
+        return 'శ్రీ రామ';
+      case 'kn':
+        return 'ಶ್ರೀ ರಾಮ';
+      case 'ml':
+        return 'ഓം നമഃ ശിവായ';
+      case 'bn':
+        return 'শ্রী রাম';
+      case 'pa':
+        return 'ਵਾਹਿਗੁਰੂ';
+      default:
+        return 'Shree Ram, Om Namah Shivaya';
+    }
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Sacred Name / Mantra</Text>
       <TextInput
-        style={[styles.input, error && styles.inputError]}
         value={value}
         onChangeText={onChange}
-        placeholder={language === 'hi' ? 'जैसे: श्री राम' : language === 'gu' ? 'જેમ કે: શ્રી રામ' : 'e.g., Shree Ram'}
-        placeholderTextColor={colors.textTertiary}
-        autoCapitalize="none"
+        placeholder={getPlaceholder()}
+        placeholderTextColor={colors.unwritten}
+        style={[styles.input, error && styles.inputError]}
         autoCorrect={false}
+        autoCapitalize="none"
       />
       {error && <Text style={styles.errorText}>{error}</Text>}
-      
-      {presets.length > 0 && (
-        <View style={styles.presetsContainer}>
-          <Text style={styles.presetsLabel}>Popular:</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.presetsList}
-          >
-            {presets.map((preset, index) => (
-              <Pressable
-                key={index}
-                onPress={() => onChange(preset)}
-                style={({ pressed }) => [
-                  styles.presetChip,
-                  pressed && styles.presetChipPressed,
-                ]}
-              >
-                <Text style={styles.presetText}>{preset}</Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
-      )}
     </View>
   );
 }
@@ -64,15 +62,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   input: {
-    ...typography.bodyLarge,
+    ...typography.sacred,
     backgroundColor: colors.surface,
     borderWidth: 2,
     borderColor: colors.surfaceDim,
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
     color: colors.text,
-    minHeight: 56,
-    ...shadows.sm,
+    textAlign: 'center',
   },
   inputError: {
     borderColor: colors.error,
@@ -80,32 +77,6 @@ const styles = StyleSheet.create({
   errorText: {
     ...typography.caption,
     color: colors.error,
-    marginTop: spacing.xs,
-  },
-  presetsContainer: {
-    marginTop: spacing.md,
-  },
-  presetsLabel: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    marginBottom: spacing.sm,
-  },
-  presetsList: {
-    gap: spacing.sm,
-  },
-  presetChip: {
-    backgroundColor: colors.highlight,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.round,
-    borderWidth: 1,
-    borderColor: colors.primary + '40',
-  },
-  presetChipPressed: {
-    opacity: 0.7,
-  },
-  presetText: {
-    ...typography.body,
-    color: colors.text,
+    marginTop: spacing.sm,
   },
 });
